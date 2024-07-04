@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "50192834863",
+    "project_id": "preloved-17d41",
+    "storage_bucket": "preloved-17d41.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:50192834863:android:b12f2840e04e1c3a87c1da",
+        "android_client_info": {
+          "package_name": "com.example.preloved"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDI3bUYpoBo1ZRDe4eicSHJ-RP0ChrzWd8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
