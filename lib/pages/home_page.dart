@@ -1,6 +1,13 @@
-import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:preloved/pages/add_product_page.dart';
+import 'package:preloved/pages/profile_page.dart';
+import 'package:preloved/widgets/ads_widget.dart';
+import 'package:preloved/widgets/categories_widget.dart';
+import 'package:preloved/widgets/firebase_service.dart';
+import 'package:preloved/widgets/products_widget.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -10,9 +17,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  String? _userName;
-  int _currentAdIndex = 0;
-  Timer? _adTimer;
+  String? _userName = 'User';
+  String? userId = FirebaseAuth.instance.currentUser?.uid;
   late PageController _pageController;
 
   final List<String> _ads = [
@@ -27,66 +33,56 @@ class _HomePageState extends State<HomePage> {
     'Chair',
     'Sofa',
     'Bed',
-    'Desk',
+    'Closet',
     'Electronic',
   ];
 
-  final List<String> _recommendations = [
-    'OMO Bean Bag Sofa',
-    'Daisie Black Chair',
-  ];
+  Stream<List<DocumentSnapshot>> getProductStream() {
+    return FirebaseFirestore.instance.collection('products').snapshots().map((snapshot) => snapshot.docs);
+  }
 
   @override
   void initState() {
     super.initState();
-    _loadUserName();
+    _loadUserNameFromFirebase();
     _pageController = PageController(viewportFraction: 1);
-    _startAdTimer();
   }
 
   @override
   void dispose() {
-    _adTimer?.cancel();
     _pageController.dispose();
     super.dispose();
   }
 
-  void _startAdTimer() {
-    _adTimer = Timer.periodic(const Duration(seconds: 5), (Timer timer) {
-      setState(() {
-        _currentAdIndex = (_currentAdIndex + 1) % _ads.length;
-      });
-      _pageController.animateToPage(
-        _currentAdIndex,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-    });
-  }
-
-  Future<void> _loadUserName() async {
-    User? user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      setState(() {
-        _userName = user.displayName;
-      });
+  Future<void> _loadUserNameFromFirebase() async {
+    // Example method to fetch username from Firebase using FirebaseService
+    try {
+      String? userName = await FirebaseService().getUserName(userId!);
+      if (userName != null && userName.isNotEmpty) {
+        setState(() {
+          _userName = userName;
+        });
+      }
+    } catch (e) {
+      e.toString();
     }
   }
 
-  @override
+   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.white,
         title: RichText(
           text: TextSpan(
             children: <TextSpan>[
               const TextSpan(
                 text: 'Hi, ',
-                style: TextStyle(fontWeight: FontWeight.normal, fontSize: 20, color: Color(0xff1a1a1a)), // Gaya font untuk "Hi,"
+                style: TextStyle(fontWeight: FontWeight.normal, fontSize: 20, color: Color(0xff1a1a1a)),
               ),
               TextSpan(
                 text: _userName ?? 'User',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Color(0xffFF9F2D)), // Gaya font untuk username
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Color(0xffFF9F2D)),
               ),
             ],
           ),
@@ -95,228 +91,84 @@ class _HomePageState extends State<HomePage> {
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () {
-              // Tambahkan aksi pencarian di sini
+              // 
             },
           ),
           IconButton(
             icon: const Icon(Icons.shopping_cart),
             onPressed: () {
-              // Tambahkan aksi keranjang belanja di sini
+              //
             },
           ),
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.category),
-            label: 'Categories',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.account_circle),
-            label: 'Profile',
-          ),
-        ],
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AddProductPage()),
+          );
+        },
+        child: const Icon(Icons.add),
       ),
+      bottomNavigationBar: BottomNavigationBar(
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.category),
+              label: 'Categories',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.account_circle),
+              label: 'Profile',
+            ),
+          ],
+          currentIndex: 0,
+          onTap: (int index) {
+            switch (index) {
+              case 0:
+                break;
+              case 1:
+                break;
+              case 2:
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ProfilePage()),
+                );
+                break;
+            }
+          }),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            SizedBox(
-              height: 200.0,
-              child: Stack(
+            AdsSection(
+              ads: _ads,
+              pageController: _pageController,
+            ),
+            CategoriesSection(
+              categories: _categories,
+            ),
+            const SizedBox(height: 20.0),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 10.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  PageView.builder(
-                    itemCount: _ads.length,
-                    controller: _pageController,
-                    onPageChanged: (int index) {
-                      setState(() {
-                        _currentAdIndex = index;
-                      });
-                    },
-                    itemBuilder: (BuildContext context, int index) {
-                      return Image.asset(
-                        _ads[index],
-                        fit: BoxFit.contain,
-                      );
-                    },
-                  ),
-                  Positioned(
-                    bottom: 10,
-                    left: 0,
-                    right: 0,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(
-                        _ads.length,
-                        (index) => Container(
-                          width: 8,
-                          height: 8,
-                          margin: const EdgeInsets.symmetric(horizontal: 4),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: index == _currentAdIndex
-                                ? const Color(0xff1A1A1A)
-                                : const Color.fromARGB(255, 214, 214, 214),
-                          ),
-                        ),
-                      ),
-                    ),
+                  Text(
+                    'You might Love it!',
+                    style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 10.0),
-            // Shop by Category
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Categories',
-                    style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      // Tambahkan aksi view all di sini
-                    },
-                    child: const Text('View all'),
-                  ),
-                ],
-              ),
+            ProductsSection(
+              productStream: getProductStream(),
             ),
-            Container(
-              height: 80.0,
-              margin: const EdgeInsets.symmetric(horizontal: 10.0),
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: _categories.length,
-                itemBuilder: (context, index) {
-                  IconData iconData;
-                  switch (_categories[index].toLowerCase()) {
-                    case 'table':
-                      iconData = Icons.table_chart;
-                      break;
-                    case 'chair':
-                      iconData = Icons.chair;
-                      break;
-                    case 'sofa':
-                      iconData = Icons.weekend;
-                      break;
-                    case 'bed':
-                      iconData = Icons.bed;
-                      break;
-                    case 'desk':
-                      iconData = Icons.work;
-                      break;
-                    case 'electronic':
-                      iconData = Icons.devices_other;
-                      break;
-                    default:
-                      iconData = Icons.category;
-                  }
-                  return Card(
-                    margin: const EdgeInsets.symmetric(horizontal: 5.0),
-                    child: SizedBox(
-                      width: 80.0,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(iconData, size: 30.0),
-                          const SizedBox(height: 5.0),
-                          Text(
-                            _categories[index],
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-
-            const SizedBox(height: 20.0),
-            // Recommendations for User
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'You might Love it!',
-                    style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      // Tambahkan aksi view all di sini
-                    },
-                    child: const Text('View all'),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0),
-              child: GridView.builder(
-                physics: const NeverScrollableScrollPhysics(),
-                shrinkWrap: true,
-                itemCount: _recommendations.length,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 0.8,
-                  crossAxisSpacing: 10.0,
-                  mainAxisSpacing: 10.0,
-                ),
-                itemBuilder: (context, index) {
-                  return Card(
-                    color: Color(0xffFFFFFF),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Image.asset(
-                            'assets/product${index + 1}.png',
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                          child: Text(
-                            '\$${(index + 1) * 50}.00',
-                            style: const TextStyle(color: Colors.orange, fontSize: 20, fontWeight: FontWeight.w600),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(10.0, 5.0, 10.0, 5.0),
-                          child: Text(
-                            _recommendations[index],
-                            style: const TextStyle(fontSize: 16, color: Color(0xff1A1A1A), fontWeight: FontWeight.w600),
-                          ),
-                        ),
-                        const Padding(
-                          padding: EdgeInsets.fromLTRB(10.0, 15.0, 10.0, 10.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Icon(
-                                Icons.favorite_border,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
+            const SizedBox(height: 10.0),
           ],
         ),
       ),
