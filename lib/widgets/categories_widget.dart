@@ -35,7 +35,6 @@ class CategoriesSection extends StatelessWidget {
             itemCount: categories.length,
             itemBuilder: (context, index) {
               IconData iconData;
-              // Determine icon based on category (similar to previous implementation)
               switch (categories[index].toLowerCase()) {
                 case 'table':
                   iconData = Icons.table_restaurant_outlined;

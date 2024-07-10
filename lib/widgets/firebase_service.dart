@@ -31,12 +31,12 @@ class FirebaseService {
     try {
       DocumentSnapshot userDoc = await _firestore.collection('users').doc(userId).get();
       if (userDoc.exists) {
-        return userDoc['name']; // Mengembalikan nama pengguna dari dokumen pengguna
+        return userDoc['name'];
       }
-      return null; // Mengembalikan null jika dokumen pengguna tidak ada
+      return null;
     } catch (e) {
       print('Error getting user name: $e');
-      return null; // Mengembalikan null jika terjadi kesalahan
+      return null;
     }
   }
 }

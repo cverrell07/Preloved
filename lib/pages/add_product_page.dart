@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:preloved/pages/home_page.dart';
+import 'package:preloved/pages/profile_page.dart';
 
 class AddProductPage extends StatefulWidget {
   const AddProductPage({Key? key}) : super(key: key);
@@ -29,7 +31,57 @@ class _AddProductPageState extends State<AddProductPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Create New Item'),
+        backgroundColor: Colors.white,
+        title: RichText(
+          text: const TextSpan(
+            children: <TextSpan>[
+              TextSpan(
+                text: 'Preloved',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Color(0xffFF9F2D)),
+              ),
+              TextSpan(
+                text: ' a Product',
+                style: TextStyle(fontWeight: FontWeight.normal, fontSize: 20, color: Color(0xff1A1A1A)),
+              ),
+            ],
+          ),
+        ),
+        automaticallyImplyLeading: false,
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.add),
+            label: 'Add Product',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.account_circle),
+            label: 'Profile',
+          ),
+        ],
+        currentIndex: 1,
+        onTap: (int index) {
+          switch (index) {
+            case 0:
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const HomePage()),
+              );
+              break;
+            case 1:
+              break;
+            case 2:
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProfilePage()),
+              );
+              break;
+          }
+        },
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -91,14 +143,12 @@ class _AddProductPageState extends State<AddProductPage> {
                   },
                   decoration: const InputDecoration(labelText: 'Category'),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 30),
                 ElevatedButton(
                   onPressed: () async {
                     if (_formKey.currentState?.validate() ?? false) {
                       _formKey.currentState?.save();
-
                       try {
-                        // Simpan data produk ke Firestore
                         await FirebaseFirestore.instance.collection('products').add({
                           'itemName': _itemName,
                           'itemPrice': _itemPrice,
@@ -108,23 +158,29 @@ class _AddProductPageState extends State<AddProductPage> {
                           'createdAt': FieldValue.serverTimestamp(), // Timestamp saat produk dibuat
                         });
 
-                        // Tampilkan pesan sukses atau navigasi kembali
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Product added successfully')),
                         );
 
-                        // Navigate back to the previous screen
                         Navigator.pop(context);
                       } catch (e) {
-                        // Handle errors
                         print('Error adding product: $e');
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Failed to add product')),
+                          const SnackBar(content: Text('Failed to add product')),
                         );
                       }
                     }
                   },
-                  child: const Text('Create Item'),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 20),
+                    padding: const EdgeInsets.symmetric(vertical: 10.0),
+                    backgroundColor: const Color(0xffFFD4A1),
+                    textStyle: const TextStyle(fontSize: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                  ),
+                  child: const Text('Add Product'),
                 ),
               ],
             ),

@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:preloved/pages/product_detail_page.dart';
+
+Future<DocumentSnapshot> getUserData(String userId) async {
+  return await FirebaseFirestore.instance.collection('users').doc(userId).get();
+}
 
 class ProductsSection extends StatelessWidget {
   final Stream<List<DocumentSnapshot>> productStream;
@@ -32,19 +37,22 @@ class ProductsSection extends StatelessWidget {
             itemCount: products.length,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
-              childAspectRatio: 0.8,
+              childAspectRatio: 1,
               crossAxisSpacing: 10.0,
               mainAxisSpacing: 10.0,
             ),
             itemBuilder: (context, index) {
+              String itemId = products[index].id;
               String itemName = products[index].get('itemName') ?? '';
               int itemPrice = products[index].get('itemPrice') ?? 0;
               String category = products[index].get('category') ?? 'Other';
+              String itemDescription = products[index].get('itemDescription') ?? '';
+              String userId = products[index].get('userId') ?? '';
               IconData iconData;
 
               switch (category.toLowerCase()) {
                 case 'table':
-                  iconData = Icons.table_chart_outlined;
+                  iconData = Icons.table_restaurant_outlined;
                   break;
                 case 'chair':
                   iconData = Icons.chair_alt_outlined;
@@ -65,43 +73,77 @@ class ProductsSection extends StatelessWidget {
                   iconData = Icons.category;
               }
 
-              return Card(
-                color: const Color(0xffFFFFFF),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 45.0),
-                      child: Icon(iconData, size: 80.0, color: Theme.of(context).primaryColor),
-                    ),
-                    const SizedBox(height: 10),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                      child: Text(
-                        'Rp.$itemPrice',
-                        style: const TextStyle(color: Colors.orange, fontSize: 20, fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(10.0, 5.0, 10.0, 5.0),
-                      child: Text(
-                        itemName,
-                        style: const TextStyle(fontSize: 16, color: Color(0xff1A1A1A), fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                    const Padding(
-                      padding: EdgeInsets.fromLTRB(10.0, 15.0, 10.0, 10.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
+              return FutureBuilder<DocumentSnapshot>(
+                future: getUserData(userId),
+                builder: (context, userSnapshot) {
+                  if (userSnapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (!userSnapshot.hasData) {
+                    return const Center(child: Text('User not found'));
+                  }
+
+                  String userName = userSnapshot.data!.get('name') ?? 'Unknown';
+                  String phoneNum = userSnapshot.data!.get('phoneNum') ?? '';
+
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ProductDetailPage(
+                            itemId: itemId,
+                            itemName: itemName,
+                            itemPrice: itemPrice,
+                            category: category,
+                            userId: userId,
+                            userName: userName,
+                            phoneNum: phoneNum,
+                            description: itemDescription,
+                          ),
+                        ),
+                      );
+                    },
+                    child: Card(
+                      color: const Color(0xffFFFFFF),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Icon(
-                            Icons.favorite_border,
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 45.0),
+                            child: Icon(iconData, size: 80.0, color: Theme.of(context).primaryColor),
+                          ),
+                          const SizedBox(height: 10),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                            child: Text(
+                              itemName,
+                              style: const TextStyle(fontSize: 18, color: Color(0xff1A1A1A), fontWeight: FontWeight.w600),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                            child: Text(
+                              'Owner: $userName',
+                              style: const TextStyle(fontSize: 12, color: Color(0xff1A1A1A), fontWeight: FontWeight.w400),
+                            ),
+                          ),
+                          const SizedBox(height: 10.0),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                            child: Text(
+                              'Rp.$itemPrice',
+                              style: const TextStyle(color: Color(0xffFF9F2D), fontSize: 16, fontWeight: FontWeight.w600),
+                            ),
                           ),
                         ],
                       ),
                     ),
-                  ],
-                ),
+                  );
+                },
               );
             },
           );

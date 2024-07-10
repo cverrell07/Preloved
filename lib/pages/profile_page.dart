@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:preloved/pages/add_product_page.dart';
 import 'package:preloved/pages/login_page.dart';
 import 'package:preloved/pages/home_page.dart';
 
@@ -10,7 +11,20 @@ class ProfilePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Profile'),
+        title: RichText(
+          text: const TextSpan(
+            children: <TextSpan>[
+              TextSpan(
+                text: 'My',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Color(0xffFF9F2D)),
+              ),
+              TextSpan(
+                text: ' Profile',
+                style: TextStyle(fontWeight: FontWeight.normal, fontSize: 20, color: Color(0xff1A1A1A)),
+              ),
+            ],
+          ),
+        ),
         automaticallyImplyLeading: false,
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -20,8 +34,8 @@ class ProfilePage extends StatelessWidget {
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.category),
-            label: 'Categories',
+            icon: Icon(Icons.add),
+            label: 'Add Product',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.account_circle),
@@ -39,6 +53,10 @@ class ProfilePage extends StatelessWidget {
               );
               break;
             case 1:
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AddProductPage()),
+              );
               break;
             case 2:
               break;
