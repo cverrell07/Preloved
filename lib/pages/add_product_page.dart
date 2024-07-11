@@ -31,7 +31,7 @@ class _AddProductPageState extends State<AddProductPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).canvasColor,
         title: RichText(
           text: const TextSpan(
             children: <TextSpan>[
@@ -155,7 +155,7 @@ class _AddProductPageState extends State<AddProductPage> {
                           'itemDescription': _itemDescription,
                           'category': _selectedCategory,
                           'userId': FirebaseAuth.instance.currentUser!.uid,
-                          'createdAt': FieldValue.serverTimestamp(), // Timestamp saat produk dibuat
+                          'createdAt': FieldValue.serverTimestamp(), 
                         });
 
                         ScaffoldMessenger.of(context).showSnackBar(

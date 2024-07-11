@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:preloved/pages/category_product_page.dart';
 
 class CategoriesSection extends StatelessWidget {
   final List<String> categories;
@@ -57,20 +58,33 @@ class CategoriesSection extends StatelessWidget {
                 default:
                   iconData = Icons.category;
               }
-              return Card(
-                margin: const EdgeInsets.symmetric(horizontal: 5.0),
-                child: SizedBox(
-                  width: 80.0,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(iconData, size: 30.0),
-                      const SizedBox(height: 5.0),
-                      Text(
-                        categories[index],
-                        textAlign: TextAlign.center,
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => CategoryProductsPage(
+                        category: categories[index],
                       ),
-                    ],
+                    ),
+                  );
+                },
+                child: Card(
+                  elevation: 0.0,
+                  margin: const EdgeInsets.symmetric(horizontal: 5.0),
+                  child: SizedBox(
+                    width: 80.0,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(iconData, size: 30.0),
+                        const SizedBox(height: 5.0),
+                        Text(
+                          categories[index],
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               );

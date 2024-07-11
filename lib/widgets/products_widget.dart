@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:preloved/pages/product_detail_page.dart';
@@ -30,11 +31,14 @@ class ProductsSection extends StatelessWidget {
           }
 
           List<DocumentSnapshot> products = snapshot.data!;
+          String currentUserID = FirebaseAuth.instance.currentUser?.uid ?? '';
+
+          List<DocumentSnapshot> filteredProducts = products.where((product) => product.get('userId') != currentUserID).toList();
 
           return GridView.builder(
             physics: const NeverScrollableScrollPhysics(),
             shrinkWrap: true,
-            itemCount: products.length,
+            itemCount: filteredProducts.length,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
               childAspectRatio: 1,
@@ -42,12 +46,13 @@ class ProductsSection extends StatelessWidget {
               mainAxisSpacing: 10.0,
             ),
             itemBuilder: (context, index) {
-              String itemId = products[index].id;
-              String itemName = products[index].get('itemName') ?? '';
-              int itemPrice = products[index].get('itemPrice') ?? 0;
-              String category = products[index].get('category') ?? 'Other';
-              String itemDescription = products[index].get('itemDescription') ?? '';
-              String userId = products[index].get('userId') ?? '';
+              DocumentSnapshot product = filteredProducts[index];
+              String itemId = product.id;
+              String itemName = product.get('itemName') ?? '';
+              int itemPrice = product.get('itemPrice') ?? 0;
+              String category = product.get('category') ?? 'Other';
+              String itemDescription = product.get('itemDescription') ?? '';
+              String userId = product.get('userId') ?? '';
               IconData iconData;
 
               switch (category.toLowerCase()) {

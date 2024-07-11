@@ -127,6 +127,43 @@ class _ProductDetailPageState extends State<ProductDetailPage>
     }
   }
 
+  void addToCart() async {
+    try {
+      QuerySnapshot query = await FirebaseFirestore.instance.collection('cart')
+        .where('itemId', isEqualTo: widget.itemId)
+        .where('userIdAdded', isEqualTo: currentUserId)
+        .limit(1)
+        .get();
+
+      if (query.docs.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Item is already in the cart')),
+        );
+      } else {
+        await FirebaseFirestore.instance.collection('cart').add({
+          'itemId': widget.itemId,
+          'itemName': widget.itemName,
+          'itemPrice': widget.itemPrice,
+          'userIdAdded': currentUserId,
+          'category': widget.category,
+          'userName': widget.userName,
+          'phoneNum': widget.phoneNum,
+          'description': widget.description,
+          'userId': widget.userId
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Product added to cart')),
+        );
+      }
+    } catch (e) {
+      print('Error adding to cart: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to add product to cart')),
+      );
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     IconData iconData;
@@ -156,7 +193,7 @@ class _ProductDetailPageState extends State<ProductDetailPage>
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).canvasColor,
         title: const Text("Product Details"),
         actions: [
           if (_isOwner)
@@ -259,6 +296,7 @@ class _ProductDetailPageState extends State<ProductDetailPage>
             bottom: 0,
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+              color: Theme.of(context).canvasColor,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -296,9 +334,7 @@ class _ProductDetailPageState extends State<ProductDetailPage>
                           child: const Text('Delete Product', style: TextStyle(fontSize: 16, color: Color.fromARGB(255, 74, 11, 11)),),
                         )
                       : ElevatedButton(
-                          onPressed: () {
-                            // 
-                          },
+                          onPressed: addToCart,
                           style: ElevatedButton.styleFrom(
                             minimumSize: const Size(200, 50),
                             backgroundColor: const Color(0xffFFD4A1),

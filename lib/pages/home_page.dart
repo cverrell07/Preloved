@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:preloved/pages/add_product_page.dart';
+import 'package:preloved/pages/cart_page.dart';
 import 'package:preloved/pages/profile_page.dart';
+import 'package:preloved/pages/search_page.dart';
 import 'package:preloved/widgets/ads_widget.dart';
 import 'package:preloved/widgets/categories_widget.dart';
-import 'package:preloved/widgets/firebase_service.dart';
+import 'package:preloved/services/firebase_service.dart';
 import 'package:preloved/widgets/products_widget.dart';
 
 class HomePage extends StatefulWidget {
@@ -71,7 +73,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).canvasColor,
         automaticallyImplyLeading: false,
         title: RichText(
           text: TextSpan(
@@ -81,7 +83,7 @@ class _HomePageState extends State<HomePage> {
                 style: TextStyle(fontWeight: FontWeight.normal, fontSize: 20, color: Color(0xff1a1a1a)),
               ),
               TextSpan(
-                text: _userName ?? 'User',
+                text: _userName ?? '',
                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Color(0xffFF9F2D)),
               ),
             ],
@@ -91,13 +93,19 @@ class _HomePageState extends State<HomePage> {
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () {
-              // 
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SearchPage()),
+              );
             },
           ),
           IconButton(
             icon: const Icon(Icons.shopping_cart),
             onPressed: () {
-              //
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const CartPage()),
+              );
             },
           ),
         ],
